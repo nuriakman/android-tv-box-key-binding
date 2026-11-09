@@ -1,0 +1,13 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="dev.nuri.seekfwd">
+  <uses-sdk android:minSdkVersion="23" android:targetSdkVersion="34"/>
+  <uses-permission android:name="android.permission.INTERNET"/>
+  <uses-permission android:name="moe.shizuku.manager.permission.API_V23"/>
+  <application android:label="Seek seekfwd">
+    <activity android:name=".MainActivity" android:exported="true" android:theme="@android:style/Theme.NoDisplay" android:excludeFromRecents="true" android:noHistory="true">
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
+      </intent-filter>
+    </activity>
+    <provider android:name="rikka.shizuku.ShizukuProvider" android:authorities="dev.nuri.seekfwd.shizuku" android:exported="true" android:multiprocess="false"/>
+  </application>
+</manifest>
