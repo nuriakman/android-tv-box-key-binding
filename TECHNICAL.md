@@ -18,12 +18,12 @@ The branded remote keys do not travel the standard Android input path — access
 
 The handler looks up the user assignment for the pressed keyCode; if there is no assignment it launches the built-in fallback app:
 
-| KeyCode | Slot setting | Fallback |
-|---|---|---|
-| 265 | `custom_app_hotkey_package_2` | Netflix (`com.netflix.ninja`) |
-| 266 | `custom_app_hotkey_package_1` | YouTube (`com.google.android.youtube.tv`) |
-| 138 | `custom_app_hotkey_package_3` | Prime Video (`com.amazon.amazonvideo.livingroom`) |
-| 136 | `custom_app_hotkey_package_4` | Disney+ (`com.disney.disneyplus`) |
+| KeyCode | Slot setting                  | Fallback                                          |
+| ------- | ----------------------------- | ------------------------------------------------- |
+| 265     | `custom_app_hotkey_package_2` | Netflix (`com.netflix.ninja`)                     |
+| 266     | `custom_app_hotkey_package_1` | YouTube (`com.google.android.youtube.tv`)         |
+| 138     | `custom_app_hotkey_package_3` | Prime Video (`com.amazon.amazonvideo.livingroom`) |
+| 136     | `custom_app_hotkey_package_4` | Disney+ (`com.disney.disneyplus`)                 |
 
 Assignment is done by writing a **package name**; the handler resolves the MAIN/LAUNCHER activity via `getLaunchIntentForPackage` and starts it. `null` or an invalid value → fallback runs. There is no "do nothing" option, which is why an **invisible mini-app** is assigned to neutralize a key.
 
@@ -40,15 +40,15 @@ adb logcat | grep -aE 'SdtGlobalKey|GLOBAL_BUTTON'
 
 The goal is to trigger rewind/fast-forward inside YouTube. Approaches tried/eliminated:
 
-| Approach | Result |
-|---|---|
-| `dispatchMediaKeyEvent` (MEDIA_REWIND/FF) | YouTube Android TV **does not publish a MediaSession** (`dumpsys media_session` → "Media button session is null") — the command goes nowhere |
-| Accessibility service key capture | Vendor keys bypass the a11y filter and go to the `GLOBAL_BUTTON` broadcast — can't be captured |
-| `sendevent` / `/dev/input` | Requires root + SELinux |
-| `Runtime.exec("input keyevent")` | `INJECT_EVENTS` is only granted to shell/system uid; a normal app is denied |
+| Approach                                    | Result                                                                                                                                            |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `dispatchMediaKeyEvent` (MEDIA_REWIND/FF)   | YouTube Android TV **does not publish a MediaSession** (`dumpsys media_session` → "Media button session is null") — the command goes nowhere      |
+| Accessibility service key capture           | Vendor keys bypass the a11y filter and go to the `GLOBAL_BUTTON` broadcast — can't be captured                                                    |
+| `sendevent` / `/dev/input`                  | Requires root + SELinux                                                                                                                           |
+| `Runtime.exec("input keyevent")`            | `INJECT_EVENTS` is only granted to shell/system uid; a normal app is denied                                                                       |
 | Self-ADB (app connecting to 127.0.0.1:5555) | Hand-written ADB wire protocol is possible but RSA signature/handshake details are sensitive to the adbd version — found unstable in this project |
-| PC daemon + HTTP bridge | Works (`scripts/tvseek_daemon.py`) but requires the PC to be on |
-| **Shizuku + `input keyevent`** | ✅ The only persistent solution: started once on the box via adb, then runs `newProcess` with shell-uid privileges; no PC/network needed |
+| PC daemon + HTTP bridge                     | Works (`scripts/tvseek_daemon.py`) but requires the PC to be on                                                                                   |
+| **Shizuku + `input keyevent`**              | ✅ The only persistent solution: started once on the box via adb, then runs `newProcess` with shell-uid privileges; no PC/network needed          |
 
 The injected `input keyevent 21/22` (DPAD_LEFT/RIGHT) enters the input pipeline directly → reaches the focused app like a real remote press → YouTube seeks ~10s. `MEDIA_PLAY` (126) keeps playback running after the seek; `DPAD_CENTER` (23) is not used because it opens the control overlay in YouTube.
 
